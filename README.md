@@ -1169,22 +1169,49 @@ Sure! Let’s break down the differences between **`ArrayList`** and **`LinkedLi
 
 ---
 
-### ✅ Quick Tip:
-
-* If your program mostly **reads data** and occasionally **adds at the end**, use `ArrayList`.
-* If your program **inserts/deletes frequently at the start/middle**, use `LinkedList`.
+Sure! Here’s a rewritten version that starts with a clear explanation of **what idempotent means**:
 
 ---
 
-If you want, I can also draw a **visual diagram comparing ArrayList vs LinkedList** with nodes and memory layout—it really makes the difference obvious.
+### **What is idempotent?**
 
-Do you want me to do that?
+In a **REST API**, a method is **idempotent** if **calling it multiple times has the same effect as calling it once**. In other words, no matter how many times the request is repeated, the server’s state remains the same (or the response stays consistent).
+
+---
+
+### **HTTP Methods and Idempotency**
+
+| HTTP Method | Idempotent? | Behavior                                                                                                     | Example                                          |
+| ----------- | ----------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| **GET**     | ✅ Yes       | Retrieves data, does not change server state. Multiple calls return the same result.                         | `GET /users/123`                                 |
+| **PUT**     | ✅ Yes       | Updates or replaces a resource. Repeating the same PUT request results in the same resource state.           | `PUT /users/123` with same body                  |
+| **DELETE**  | ✅ Yes       | Deletes a resource. Repeating it has the same effect (resource remains deleted).                             | `DELETE /users/123`                              |
+| **POST**    | ❌ No        | Creates a new resource. Multiple calls usually create multiple resources (not idempotent).                   | `POST /users` creates multiple users if repeated |
+| **PATCH**   | ❌ Usually   | Partially updates a resource. Repeating may or may not result in the same state depending on implementation. | `PATCH /users/123`                               |
+| **HEAD**    | ✅ Yes       | Same as GET but only returns headers.                                                                        | `HEAD /users/123`                                |
+| **OPTIONS** | ✅ Yes       | Returns supported HTTP methods.                                                                              | `OPTIONS /users`                                 |
+
+---
+
+### **Key Points**
+
+1. **Idempotent = same result if repeated**
+   Example: `PUT /users/123 { "name": "Alice" }` — calling this multiple times still leaves the user’s name as "Alice".
+
+2. **Non-idempotent = may create side effects each time**
+   Example: `POST /users { "name": "Bob" }` — calling this twice usually creates two users named Bob.
+
+3. **Java implementation doesn’t change idempotency**
+   Whether using **Spring Boot**, **JAX-RS**, or **Jakarta RESTful Web Services**, idempotency depends on the HTTP method, not Java itself.
+
+---
+
+✅ **Summary for Java REST API**:
+
+* **Idempotent methods:** `GET`, `PUT`, `DELETE`, `HEAD`, `OPTIONS`
+* **Non-idempotent methods:** `POST`, sometimes `PATCH`
+
+---
 
 
 
-
-
-
-
-
-Do you want me to do that?
