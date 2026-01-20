@@ -1213,5 +1213,153 @@ In a **REST API**, a method is **idempotent** if **calling it multiple times has
 
 ---
 
+The **Hibernate N+1 problem** is a common **performance issue** that happens when Hibernate (or other ORM frameworks like JPA) executes **too many SQL queries** while loading related entities.
+
+---
+
+## What does “N+1” mean?
+
+* **1 query** to load a list of parent entities
+* **N additional queries** to load related child entities (one query per parent)
+
+So total queries = **N + 1**
+
+---
+
+## Simple example
+
+### Entities
+
+```java
+@Entity
+class Order {
+    @Id
+    Long id;
+
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    List<Item> items;
+}
+```
+
+### Code
+
+```java
+List<Order> orders = orderRepository.findAll();
+
+for (Order order : orders) {
+    System.out.println(order.getItems().size());
+}
+```
+
+### What happens in the database?
+
+1. **Query 1** – load all orders:
+
+```sql
+SELECT * FROM orders;
+```
+
+2. **Query N** – for each order, load its items:
+
+```sql
+SELECT * FROM items WHERE order_id = ?;
+```
+
+If you have **10 orders**, Hibernate runs:
+
+* 1 query for orders
+* 10 queries for items
+  ➡️ **11 total queries**
+
+This is the **N+1 problem**.
+
+---
+
+## Why is it bad?
+
+* Causes **performance degradation**
+* Increases **database load**
+* Often unnoticed in development but becomes critical in production
+
+---
+
+## How to detect it
+
+* Enable SQL logging:
+
+```properties
+spring.jpa.show-sql=true
+```
+
+* Use tools like:
+
+  * Hibernate statistics
+  * SQL logs
+  * Application performance monitoring (APM)
+
+---
+
+## Common solutions
+
+### 1. Fetch Join (Most common)
+
+```java
+@Query("SELECT o FROM Order o JOIN FETCH o.items")
+List<Order> findAllWithItems();
+```
+
+✔ Loads orders and items in **one query**
+
+---
+
+### 2. Entity Graph
+
+```java
+@EntityGraph(attributePaths = "items")
+List<Order> findAll();
+```
+
+✔ Declarative and clean solution
+
+---
+
+### 3. Change Fetch Type (Use carefully)
+
+```java
+@OneToMany(fetch = FetchType.EAGER)
+```
+
+⚠ Can cause **other performance issues** if overused
+
+---
+
+### 4. Batch Fetching
+
+```properties
+hibernate.default_batch_fetch_size=10
+```
+
+✔ Reduces queries from N to N / batchSize
+
+---
+
+## Summary
+
+| Concept     | Explanation                                 |
+| ----------- | ------------------------------------------- |
+| N+1 problem | 1 query for parent + N queries for children |
+| Cause       | Lazy loading in loops                       |
+| Impact      | Poor performance                            |
+| Best fix    | `JOIN FETCH` or `@EntityGraph`              |
+
+---
+
+If you want, I can:
+
+* Show **real SQL logs**
+* Compare **JOIN FETCH vs EntityGraph**
+* Explain how it appears in **Spring Boot apps**
+
+Just tell me 😊
 
 
