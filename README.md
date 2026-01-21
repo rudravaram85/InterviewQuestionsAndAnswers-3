@@ -1,3 +1,10 @@
+Absolutely! Using `async/await` with a `try/catch` block makes your code cleaner and easier to read. Here’s how you can rewrite both **GET** and **POST** API calls in React using Axios with `try/catch`.
+
+---
+
+### **GET Request with try/catch**
+
+```jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
@@ -33,6 +40,63 @@ const GetData = () => {
 };
 
 export default GetData;
+```
+
+---
+
+### **POST Request with try/catch**
+
+```jsx
+import React, { useState } from "react";
+import axios from "axios";
+
+const PostData = () => {
+  const [responseData, setResponseData] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleSubmit = async () => {
+    try {
+      const response = await axios.post("https://jsonplaceholder.typicode.com/posts", {
+        title: "My Post Title",
+        body: "This is the content of the post",
+        userId: 1
+      });
+      setResponseData(response.data);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <div>
+      <button onClick={handleSubmit}>Submit Post</button>
+      {responseData && (
+        <div>
+          <h2>Response:</h2>
+          <pre>{JSON.stringify(responseData, null, 2)}</pre>
+        </div>
+      )}
+      {error && <p>Error: {error}</p>}
+    </div>
+  );
+};
+
+export default PostData;
+```
+
+---
+
+✅ **Key Points with `try/catch`:**
+
+1. Wrap your `axios` call in `try` to handle successful requests.
+2. Catch errors in `catch(err)` — Axios errors usually have `err.message` or `err.response.data`.
+3. `finally` is optional but useful to set loading states.
+
+---
+
+If you want, I can also show a **version with a reusable Axios function** so you don’t repeat `try/catch` in every component, which is very handy for larger React apps.
+
+Do you want me to do that next?
 
 
 Got it! You want to **debug a Java microservice running in a container on Kubernetes**. Let’s break this down step by step, covering the main approaches and best practices. I’ll go deep, but keep it practical.
