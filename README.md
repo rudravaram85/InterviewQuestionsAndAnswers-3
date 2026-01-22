@@ -2232,13 +2232,141 @@ class UserServiceTest {
 
 ---
 
-If you want, I can:
+In Java, **`@AllArgsConstructor`** and **`@RequiredArgsConstructor`** are **Lombok** annotations (not plain Java). They both generate constructors, but **what they include is different**.
 
-* Explain **JUnit lifecycle annotations** (`@BeforeEach`, `@AfterEach`)
-* Show **Mockito + assertions**
-* Give **real interview-style questions**
-* Compare **JUnit 4 vs JUnit 5**
+---
 
-Just tell me 👍
+## `@AllArgsConstructor`
+
+### What it does
+
+Generates a constructor **with one parameter for every field in the class**.
+
+### Example
+
+```java
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
+public class User {
+    private Long id;
+    private String name;
+    private int age;
+}
+```
+
+### Generated constructor
+
+```java
+public User(Long id, String name, int age) {
+    this.id = id;
+    this.name = name;
+    this.age = age;
+}
+```
+
+### Key points
+
+* Includes **all fields**
+* Includes `final`, non-final, nullable, optional — everything
+* Can be risky for large classes (constructor explosion)
+
+---
+
+## `@RequiredArgsConstructor`
+
+### What it does
+
+Generates a constructor **only for required fields**, which are:
+
+1. `final` fields
+2. Fields annotated with `@NonNull`
+
+### Example
+
+```java
+import lombok.RequiredArgsConstructor;
+import lombok.NonNull;
+
+@RequiredArgsConstructor
+public class User {
+    private final Long id;
+    @NonNull
+    private String name;
+    private int age;
+}
+```
+
+### Generated constructor
+
+```java
+public User(Long id, String name) {
+    this.id = id;
+    this.name = name;
+}
+```
+
+### Key points
+
+* Includes **only mandatory fields**
+* Enforces immutability (`final`)
+* Safer and cleaner for domain models
+* Lombok inserts null-checks for `@NonNull`
+
+---
+
+## Side-by-side comparison
+
+| Feature                    | `@AllArgsConstructor` | `@RequiredArgsConstructor`  |
+| -------------------------- | --------------------- | --------------------------- |
+| Includes all fields        | ✅                     | ❌                           |
+| Includes `final` fields    | ✅                     | ✅                           |
+| Includes `@NonNull` fields | ✅                     | ✅                           |
+| Includes optional fields   | ✅                     | ❌                           |
+| Null checks                | ❌                     | ✅ (`@NonNull`)              |
+| Best for                   | DTOs, tests           | Domain models, immutability |
+
+---
+
+## When to use which?
+
+### Use `@AllArgsConstructor` when:
+
+* Creating **DTOs**
+* Writing **test code**
+* You want quick object creation
+
+### Use `@RequiredArgsConstructor` when:
+
+* Designing **immutable objects**
+* Writing **business/domain logic**
+* Using **Spring dependency injection** (very common)
+
+```java
+@RequiredArgsConstructor
+@Service
+public class UserService {
+    private final UserRepository userRepository;
+}
+```
+
+---
+
+## Important notes
+
+* If **any constructor is present**, Lombok **will not generate a no-args constructor**
+* Combine with:
+
+  * `@NoArgsConstructor`
+  * `@Builder`
+* Both support `access = AccessLevel.PRIVATE/PROTECTED`
+
+---
+
+If you want, I can also explain:
+
+* `@NoArgsConstructor` vs `@RequiredArgsConstructor`
+* How Spring chooses constructors
+* Pitfalls with Lombok and JPA entities
 
 
