@@ -1897,13 +1897,347 @@ Isolation.DEFAULT
 * Stronger isolation = safer but slower
 
 ---
+Below is a **clear, beginner-friendly guide to JUnit assertions in Java**, with **examples and explanations**. I’ll assume **JUnit 5 (Jupiter)**, which is the modern and recommended version.
+
+---
+
+## 1. What are JUnit Assertions?
+
+**Assertions** are methods used in tests to **verify expected behavior**.
+
+They answer questions like:
+
+* Did I get the expected value?
+* Is this object null?
+* Did an exception occur?
+* Did a condition evaluate to true?
+
+If an assertion **fails**, the test **fails**.
+
+---
+
+## 2. Basic JUnit Test Setup
+
+### Maven dependency (JUnit 5)
+
+```xml
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter</artifactId>
+    <version>5.10.1</version>
+    <scope>test</scope>
+</dependency>
+```
+
+### Basic test class
+
+```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class CalculatorTest {
+
+    @Test
+    void simpleTest() {
+        assertEquals(4, 2 + 2);
+    }
+}
+```
+
+🔹 `@Test` marks a test method
+🔹 `Assertions.*` contains all assertion methods
+
+---
+
+## 3. Most Common Assertions (With Examples)
+
+---
+
+## 4. `assertEquals()`
+
+### Purpose
+
+Checks if **expected == actual**
+
+### Example
+
+```java
+@Test
+void testAddition() {
+    int result = 5 + 3;
+    assertEquals(8, result);
+}
+```
+
+### With custom failure message
+
+```java
+assertEquals(8, result, "Addition result is incorrect");
+```
+
+📌 **Best practice:**
+Always put **expected value first**, actual value second.
+
+---
+
+## 5. `assertNotEquals()`
+
+### Purpose
+
+Checks if values are **NOT equal**
+
+```java
+@Test
+void testNotEquals() {
+    assertNotEquals(10, 5 + 3);
+}
+```
+
+---
+
+## 6. `assertTrue()` and `assertFalse()`
+
+### Purpose
+
+Validate boolean conditions
+
+```java
+@Test
+void testTrueCondition() {
+    assertTrue(10 > 5);
+}
+
+@Test
+void testFalseCondition() {
+    assertFalse(5 > 10);
+}
+```
+
+📌 Use these when testing **conditions**, not values.
+
+---
+
+## 7. `assertNull()` and `assertNotNull()`
+
+### Purpose
+
+Verify null checks
+
+```java
+@Test
+void testNull() {
+    String name = null;
+    assertNull(name);
+}
+
+@Test
+void testNotNull() {
+    String name = "JUnit";
+    assertNotNull(name);
+}
+```
+
+---
+
+## 8. `assertSame()` vs `assertEquals()`
+
+### Difference
+
+* `assertEquals()` → checks **value equality**
+* `assertSame()` → checks **reference equality**
+
+```java
+@Test
+void testSameReference() {
+    String a = "java";
+    String b = a;
+
+    assertSame(a, b);
+}
+```
+
+```java
+@Test
+void testDifferentObjects() {
+    String a = new String("java");
+    String b = new String("java");
+
+    assertEquals(a, b);      // passes
+    assertNotSame(a, b);     // passes
+}
+```
+
+---
+
+## 9. `assertArrayEquals()`
+
+### Purpose
+
+Compare array contents
+
+```java
+@Test
+void testArrayEquals() {
+    int[] expected = {1, 2, 3};
+    int[] actual = {1, 2, 3};
+
+    assertArrayEquals(expected, actual);
+}
+```
+
+❌ `assertEquals()` will fail for arrays
+✅ Always use `assertArrayEquals()`
+
+---
+
+## 10. `assertThrows()` (Very Important)
+
+### Purpose
+
+Verify that an exception is thrown
+
+```java
+@Test
+void testException() {
+    assertThrows(ArithmeticException.class, () -> {
+        int result = 10 / 0;
+    });
+}
+```
+
+### With exception message check
+
+```java
+@Test
+void testExceptionMessage() {
+    Exception exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+            throw new IllegalArgumentException("Invalid input");
+        }
+    );
+
+    assertEquals("Invalid input", exception.getMessage());
+}
+```
+
+---
+
+## 11. `assertAll()` (Grouped Assertions)
+
+### Purpose
+
+Run **multiple assertions together**
+(All are executed even if one fails)
+
+```java
+@Test
+void testMultipleAssertions() {
+    assertAll(
+        () -> assertEquals(4, 2 + 2),
+        () -> assertTrue(5 > 1),
+        () -> assertNotNull("JUnit")
+    );
+}
+```
+
+📌 Useful when validating **multiple properties of an object**
+
+---
+
+## 12. `fail()`
+
+### Purpose
+
+Force a test to fail
+
+```java
+@Test
+void testFail() {
+    fail("This test should fail");
+}
+```
+
+Commonly used in:
+
+* catch blocks
+* incomplete tests
+
+---
+
+## 13. Realistic Example (Service Class Test)
+
+### Class to test
+
+```java
+class UserService {
+    String getUsername(int id) {
+        if (id <= 0) {
+            throw new IllegalArgumentException("Invalid ID");
+        }
+        return "admin";
+    }
+}
+```
+
+### Test class
+
+```java
+class UserServiceTest {
+
+    UserService service = new UserService();
+
+    @Test
+    void testValidUser() {
+        assertEquals("admin", service.getUsername(1));
+    }
+
+    @Test
+    void testInvalidUser() {
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> service.getUsername(0)
+        );
+    }
+}
+```
+
+---
+
+## 14. Best Practices
+
+✅ Use **clear assertion messages**
+✅ One logical test per method
+✅ Prefer `assertThrows()` over try-catch
+✅ Use `assertAll()` for object validation
+❌ Don’t put logic inside test methods
+
+---
+
+## 15. Assertion Cheat Sheet
+
+| Assertion           | Purpose            |
+| ------------------- | ------------------ |
+| `assertEquals`      | Compare values     |
+| `assertNotEquals`   | Values differ      |
+| `assertTrue`        | Condition is true  |
+| `assertFalse`       | Condition is false |
+| `assertNull`        | Value is null      |
+| `assertNotNull`     | Value not null     |
+| `assertSame`        | Same reference     |
+| `assertArrayEquals` | Array content      |
+| `assertThrows`      | Exception check    |
+| `assertAll`         | Group assertions   |
+| `fail`              | Force failure      |
+
+---
 
 If you want, I can:
 
-* Show **real concurrency bugs**
-* Explain **locking vs MVCC**
-* Compare **MySQL vs PostgreSQL behavior**
-* Walk through a **Spring Boot demo**
+* Explain **JUnit lifecycle annotations** (`@BeforeEach`, `@AfterEach`)
+* Show **Mockito + assertions**
+* Give **real interview-style questions**
+* Compare **JUnit 4 vs JUnit 5**
 
 Just tell me 👍
 
