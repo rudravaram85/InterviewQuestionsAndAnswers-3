@@ -1,3 +1,6 @@
+<img width="641" height="356" alt="image" src="https://github.com/user-attachments/assets/075639c3-77c4-42c5-9892-39701a90a683" />
+
+
 Absolutely! Using `async/await` with a `try/catch` block makes your code cleaner and easier to read. Here’s how you can rewrite both **GET** and **POST** API calls in React using Axios with `try/catch`.
 
 ---
