@@ -2488,5 +2488,138 @@ In **Java microservices**, **interservice communication** refers to how one micr
 
 So in essence, interservice communication in Java microservices can be achieved in **two main ways: synchronous and asynchronous**, with multiple implementations under each.
 
-If you want, I can draw a **diagram showing all interservice communication patterns in Java microservices**—it makes it super clear. Do you want me to do that?
+Great interview question — this is exactly the kind of thing they expect a **5-year Java microservices** dev to answer clearly and confidently.
 
+Here’s a **clean, hierarchical answer** you can give, plus some depth in case they probe.
+
+---
+
+## High-level answer (what to say first)
+
+> *“For synchronous inter-service communication in Spring-based microservices, we typically use **REST over HTTP**.
+> Historically we used **RestTemplate**, then **Feign Client** became the preferred declarative approach in Spring Cloud, and now **WebClient** is the recommended non-blocking option.
+> Depending on performance and contract requirements, **gRPC** can also be used.”*
+
+Then break it down **top → bottom**.
+
+---
+
+## Tool / Library hierarchy (best → legacy)
+
+### 1️⃣ **WebClient (Spring WebFlux)** – *Current recommended*
+
+* Non-blocking, reactive
+* Better scalability under load
+* Part of Spring WebFlux
+* Works well even in non-reactive apps
+
+**When to use**
+
+* High throughput
+* Async / reactive flows
+* New applications
+
+**Key features**
+
+* Reactive (Mono / Flux)
+* Supports timeouts, retries
+* Integrates with Resilience4j
+
+---
+
+### 2️⃣ **Feign Client (Spring Cloud OpenFeign)** – *Most common in real projects*
+
+* Declarative REST client
+* Very readable & clean
+* Integrates easily with:
+
+  * Service Discovery (Eureka)
+  * Load Balancing
+  * Circuit breakers
+
+**When to use**
+
+* Internal service-to-service calls
+* Clean contracts
+* Teams want productivity
+
+**Typical stack**
+
+* OpenFeign
+* Spring Cloud LoadBalancer
+* Resilience4j
+
+---
+
+### 3️⃣ **RestTemplate** – *Legacy*
+
+* Synchronous & blocking
+* Simple but verbose
+* **Deprecated** (maintenance mode)
+
+**When to mention**
+
+* Existing legacy systems
+* Older Spring Boot versions
+
+⚠️ Important interview point:
+
+> *“RestTemplate is deprecated and not recommended for new development.”*
+
+---
+
+### 4️⃣ **gRPC** (optional advanced mention)
+
+* Binary protocol (HTTP/2)
+* High performance
+* Strong contracts (protobuf)
+
+**When to use**
+
+* Low latency systems
+* Polyglot microservices
+* Internal communication only
+
+---
+
+## Supporting tools (very important for 5+ years)
+
+You should **always mention these** alongside sync calls 👇
+
+### 🔹 Load Balancing
+
+* Spring Cloud LoadBalancer
+
+### 🔹 Service Discovery
+
+* Eureka / Consul
+
+### 🔹 Fault Tolerance
+
+* Resilience4j
+
+  * Circuit Breaker
+  * Retry
+  * Timeout
+  * Bulkhead
+
+### 🔹 Security
+
+* OAuth2 / JWT
+* Spring Security
+
+---
+
+## One-liner summary (interview gold)
+
+> *“In Spring microservices, synchronous communication is mainly REST-based using WebClient or Feign Client. Feign is preferred for declarative internal communication, WebClient for reactive and high-throughput use cases, while RestTemplate is legacy. These are typically combined with service discovery, load balancing, and Resilience4j for fault tolerance.”*
+
+---
+
+If you want, I can:
+
+* Turn this into a **2-minute spoken answer**
+* Give **real-world project examples**
+* Provide **follow-up questions interviewers ask next**
+
+Just say the word 👌
