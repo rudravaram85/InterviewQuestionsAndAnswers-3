@@ -2620,10 +2620,116 @@ You should **always mention these** alongside sync calls 👇
 
 ---
 
-If you want, I can:
+Sure 🙂 Here it is **cleanly formatted into bullet points**, keeping the original meaning but making it easier to read and present:
 
-* Turn this into a **2-minute spoken answer**
-* Give **real-world project examples**
-* Provide **follow-up questions interviewers ask next**
+---
 
-Just say the word 👌
+* In this lecture, we are going to discuss a new design pattern called the **Bulkhead Pattern**.
+
+* **What is the Bulkhead Pattern?**
+
+  * The Bulkhead pattern helps improve **resilience** and **isolation** of components or services.
+  * It is commonly used within a **microservices architecture** or a system.
+
+* **Why the ship or boat image?**
+
+  * The Bulkhead pattern is inspired by **bulkheads used in ships**.
+  * Bulkheads physically divide a ship into compartments.
+  * If one compartment is flooded, it does **not affect other compartments**.
+  * This improves the **stability and safety** of the ship.
+
+* **Titanic analogy**
+
+  * Almost everyone has watched the movie *Titanic*.
+  * When the ship collided with the iceberg, it did not sink immediately.
+  * There was a significant delay between the collision and the final sinking.
+  * This happened because **water did not flood the entire ship at once**.
+  * Bulkheads prevented water from spreading quickly to other compartments.
+  * Locking one compartment helps prevent water from entering others.
+
+* **Bulkhead Pattern in software**
+
+  * The Bulkhead pattern applies the same concept to software systems.
+  * It helps **isolate failures or high load** in one component.
+  * It prevents failures from **spreading to other components**.
+  * A heavy load on one part of the system should not bring down the entire system.
+  * Other components can continue functioning independently.
+
+* **High-level summary**
+
+  * Bulkhead pattern helps define **resource boundaries** for components.
+  * It enhances the **resiliency and stability** of the system.
+  * Resources can be allocated to specific REST APIs or microservices.
+  * Excessive resource usage by one component can be avoided.
+
+* **Understanding with an example (without Bulkhead)**
+
+  * Consider an **Accounts microservice** with two REST APIs:
+
+    * `myAccount`
+    * `myCustomerDetails`
+  * Multiple clients send requests to both APIs.
+  * `myAccount`:
+
+    * Simple REST API
+    * Does not depend on other microservices
+  * `myCustomerDetails`:
+
+    * Depends on other microservices like **Loans** and **Cards**
+    * Has higher processing time and business logic complexity
+  * Without Bulkhead:
+
+    * `myCustomerDetails` consumes all threads and resources
+    * This impacts the performance of `myAccount`
+    * `myAccount` may not get enough threads to handle requests
+
+* **With Bulkhead Pattern**
+
+  * Resource boundaries are defined for each REST API.
+  * Separate thread pools or resource limits are assigned.
+  * `myAccount` and `myCustomerDetails` get dedicated resources.
+  * Even if `myCustomerDetails` receives heavy traffic:
+
+    * `myAccount` continues to work smoothly
+  * This ensures fair resource usage and isolation.
+
+* **Implementation details**
+
+  * Spring Cloud Gateway does **not** currently support Bulkhead pattern.
+  * Bulkhead can be implemented using the **Resilience4j** library.
+  * Resilience4j provides the `@Bulkhead` annotation.
+  * You can configure:
+
+    * Bulkhead type (e.g., ThreadPool)
+    * Thread pool assignments for specific methods or operations
+
+* **Bulkhead configurations**
+
+  * Maximum concurrent calls allowed
+  * Maximum wait duration
+  * For thread pool bulkheads:
+
+    * Maximum thread pool size
+    * Core thread pool size
+    * Queue capacity
+
+* **Demo limitation**
+
+  * Bulkhead demo requires performance testing tools like:
+
+    * LoadRunner
+    * JMeter
+  * These tools help visualize thread and resource usage.
+  * Due to complexity, a live demo is not shown.
+
+* **Final notes**
+
+  * Use Bulkhead pattern when you need to define clear API boundaries.
+  * Always validate changes with help from your performance testing team.
+  * Bulkhead pattern is a powerful tool for building resilient microservices.
+
+* **Conclusion**
+
+  * Hope you now have a clear understanding of the Bulkhead pattern.
+  * Thank you, and see you in the next lecture 👋
+
