@@ -2934,6 +2934,15 @@ Supplier<String> supplier = Bulkhead.decorateSupplier(bulkhead, backendCall);
 
 ---
 
+resilience4j.thread-pool-bulkhead:
+  instances:
+    backendC:
+      maxThreadPoolSize: 1
+      coreThreadPoolSize: 1
+      queueCapacity: 1
+      writableStackTraceEnabled: true
+
+      
 This is a **Resilience4j ThreadPoolBulkhead configuration**. In plain terms, it limits how many threads and queued calls a specific backend can use so one slow dependency doesn’t take down your whole app.
 
 Let’s go line by line 👇
