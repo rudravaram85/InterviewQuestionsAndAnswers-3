@@ -2934,11 +2934,104 @@ Supplier<String> supplier = Bulkhead.decorateSupplier(bulkhead, backendCall);
 
 ---
 
+This is a **Resilience4j ThreadPoolBulkhead configuration**. In plain terms, it limits how many threads and queued calls a specific backend can use so one slow dependency doesn’t take down your whole app.
+
+Let’s go line by line 👇
+
+---
+
+### `resilience4j.thread-pool-bulkhead`
+
+You’re configuring **thread-pool based bulkheads** (not semaphore bulkheads).
+
+A *bulkhead* isolates resources — like watertight compartments on a ship 🚢. If one backend starts hanging, it can’t flood the system.
+
+---
+
+### `instances:`
+
+You can define multiple bulkheads here, one per backend or use-case.
+
+---
+
+### `backendC:`
+
+This is the **name of the bulkhead instance**.
+You’d reference this name in code or annotations, e.g.:
+
+```java
+@ThreadPoolBulkhead(name = "backendC")
+```
+
+---
+
+### `maxThreadPoolSize: 1`
+
+🔹 The **maximum number of threads** this bulkhead can ever have.
+
+➡️ At most **1 request can be executed concurrently** for `backendC`.
+
+---
+
+### `coreThreadPoolSize: 1`
+
+🔹 The **minimum number of threads** kept alive in the pool.
+
+Since both core and max are `1`, this is a **single-thread executor**.
+
+---
+
+### `queueCapacity: 1`
+
+🔹 How many requests can **wait in line** when the thread is busy.
+
+With:
+
+* 1 active thread
+* 1 queued request
+
+➡️ **Total capacity = 2 requests**
+
+Any **3rd request** will be **rejected immediately** with a `BulkheadFullException`.
+
+---
+
+### `writableStackTraceEnabled: true`
+
+🔹 Controls whether exceptions thrown by the bulkhead include a stack trace.
+
+* `true` → easier debugging 🐞 (but slightly more CPU/memory)
+* `false` → better performance in high-throughput systems
+
+---
+
+### What this setup really means
+
+For `backendC`:
+
+* Only **1 request runs at a time**
+* **1 more request may wait**
+* Any extra requests fail fast
+* Prevents slow or blocked calls from exhausting threads
+
+This is a **very aggressive isolation strategy** — typically used when:
+
+* The backend is slow or unstable
+* You want strict protection
+* You’re okay with fast failures
+
+---
+
+### TL;DR
+
+> “backendC is allowed **one worker thread**, **one waiting request**, and nothing more.”
+
 If you want, I can:
 
-* Explain **Semaphore vs ThreadPool bulkheads**
-* Show **real production tuning guidelines**
-* Walk through **what happens under load step-by-step**
-* Compare this with **Hystrix** or **Spring Retry**
+* Compare this to a **semaphore bulkhead**
+* Explain what happens under load (timeline-style)
+* Suggest better values for prod vs test
+* Show the equivalent Java config
 
-Just say the word 🙂
+Just say the word 👍
+
