@@ -1,3 +1,289 @@
+Love this topic — deployment strategies are **core Kubernetes knowledge** and show up in *every* DevOps/SRE interview. I’ll teach this **step-by-step**, from fundamentals → real-world usage → when to choose what.
+
+---
+
+# Kubernetes Deployment Strategies (from zero → production)
+
+## First: what is a deployment strategy?
+
+A deployment strategy defines **how new versions of an application are released** to users **without (or with minimal) downtime**.
+
+In Kubernetes, this is mostly controlled by:
+
+* `Deployment`
+* `Service`
+* Sometimes `Ingress`
+* Sometimes extra controllers (Argo Rollouts, Istio)
+
+---
+
+## 1️⃣ Recreate (Baseline strategy)
+
+### How it works
+
+* Old pods are **terminated**
+* New pods are **created**
+
+```
+v1 pods ❌❌❌
+v2 pods ✅✅✅
+```
+
+### Kubernetes config
+
+```yaml
+strategy:
+  type: Recreate
+```
+
+### Pros
+
+* Simple
+* No extra infra
+* No version mixing
+
+### Cons
+
+* ❌ Downtime
+* ❌ Not production-friendly
+
+### Use when
+
+* Dev / test
+* Stateful apps that cannot run two versions
+* One-off internal tools
+
+---
+
+## 2️⃣ Rolling Update (Default & most common)
+
+### How it works
+
+* Gradually replaces pods
+* Old and new versions run together
+
+```
+v1 ➡️ v1+v2 ➡️ v2
+```
+
+### Kubernetes config
+
+```yaml
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+```
+
+### Key terms
+
+* **maxSurge**: extra pods allowed
+* **maxUnavailable**: pods allowed to be down
+
+### Pros
+
+* Zero downtime
+* Built-in
+* Easy
+
+### Cons
+
+* No traffic control
+* No automatic rollback on bad metrics
+
+### Use when
+
+* Most stateless services
+* Basic production workloads
+
+---
+
+## 3️⃣ Blue-Green Deployment
+
+### How it works
+
+* Two environments: **Blue (current)** and **Green (new)**
+* Traffic switches instantly
+
+```
+Service → Blue
+Service → Green
+```
+
+### Implementation options
+
+* Change Service selector
+* Change Ingress backend
+* Use Argo Rollouts
+
+### Pros
+
+* Instant rollback
+* Clean separation
+* Easy testing before switch
+
+### Cons
+
+* Double resources
+* No gradual rollout
+
+### Use when
+
+* High-risk releases
+* APIs with strict uptime
+* Regulated environments
+
+---
+
+## 4️⃣ Canary Deployment (Very important)
+
+### How it works
+
+* Small % of traffic goes to new version
+* Gradually increase
+
+```
+90% → v1
+10% → v2
+```
+
+### Native Kubernetes?
+
+❌ Not really
+
+### Common implementations
+
+* Argo Rollouts
+* Istio / Linkerd
+* NGINX Ingress
+
+### Pros
+
+* Safer deployments
+* Real user validation
+* Metric-based promotion
+
+### Cons
+
+* More complex
+* Needs tooling
+
+### Use when
+
+* User-facing apps
+* Frequent releases
+* High blast-radius systems
+
+---
+
+## 5️⃣ A/B Testing (Traffic-based)
+
+### How it works
+
+* Different users get different versions
+* Based on headers, cookies, regions
+
+### Needs
+
+* Service mesh or advanced ingress
+
+### Use when
+
+* Feature experimentation
+* Product-driven teams
+
+---
+
+## 6️⃣ Shadow / Mirrored Deployments
+
+### How it works
+
+* Real traffic is copied to new version
+* Responses are ignored
+
+### Use when
+
+* Testing performance
+* Validating new systems
+* Zero user impact testing
+
+---
+
+## 7️⃣ Progressive Delivery (Modern approach)
+
+This is **canary + metrics + automation**.
+
+### Tools
+
+* Argo Rollouts
+* Flagger
+* Istio
+* Prometheus
+
+### Example flow
+
+1. Deploy v2
+2. Send 5% traffic
+3. Check error rate / latency
+4. Promote or rollback automatically
+
+This is what **big tech uses**.
+
+---
+
+## 8️⃣ Comparison table
+
+| Strategy    | Downtime | Risk     | Complexity | Prod-ready |
+| ----------- | -------- | -------- | ---------- | ---------- |
+| Recreate    | Yes      | High     | Low        | ❌          |
+| Rolling     | No       | Medium   | Low        | ✅          |
+| Blue-Green  | No       | Medium   | Medium     | ✅          |
+| Canary      | No       | Low      | High       | ✅          |
+| Progressive | No       | Very low | High       | ⭐⭐⭐⭐⭐      |
+
+---
+
+## 9️⃣ How this looks in real companies
+
+### Small teams
+
+* RollingUpdate
+* Manual rollback
+
+### Mid-size teams
+
+* Blue-Green for APIs
+* Canary for UI
+
+### Large / SRE teams
+
+* Canary + metrics
+* Argo Rollouts
+* GitOps (Argo CD)
+
+---
+
+## 🔟 Interview-ready answer (memorize this)
+
+> “Kubernetes supports multiple deployment strategies like Recreate and RollingUpdate natively. For advanced use cases, Blue-Green and Canary deployments are implemented using Services, Ingress, or tools like Argo Rollouts. In production, we usually prefer Canary or Progressive Delivery because they reduce risk by validating releases against real metrics before full rollout.”
+
+---
+
+## Want to go deeper next?
+
+I can:
+
+* 🧪 Show **YAML examples** for each strategy
+* 🧠 Teach **Argo Rollouts step-by-step**
+* 🎯 Explain **when rolling updates fail**
+* ⚠️ Cover **common production mistakes**
+* 🧩 Tie this into **GitOps + Argo CD**
+
+Just tell me your experience level (beginner / intermediate / advanced) and goal (interview, real project, certification).
+
+
+
 Got it — this is a **classic interview + architecture comparison**. I’ll break it down cleanly, *real-world style*, not marketing fluff.
 
 ---
