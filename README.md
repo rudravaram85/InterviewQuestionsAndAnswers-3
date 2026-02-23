@@ -6373,16 +6373,450 @@ COMPLETED
 * Horizontal scalability
 
 ---
+Below is a **production-grade configuration guide** for **Kafka producers and consumers** in the distributed banking transaction flow (fraud → compliance → reserve → payment → ledger → state), built on Apache Kafka.
 
-If you want next-level depth, I can provide:
+This is tuned for:
 
-* 🔹 Kafka topic design for 100M+ transactions/day
-* 🔹 Multi-region active-active Kafka setup
-* 🔹 Outbox pattern integration
-* 🔹 Event versioning strategy
-* 🔹 Real production tuning checklist
-* 🔹 Complete sequence diagram
+* High-value financial transactions
+* Strict ordering guarantees
+* Exactly-once semantics (EOS)
+* Regulatory audit requirements
+* High throughput (10K–100K TPS per cluster)
 
-Tell me which direction you want to go.
+---
+
+# 🏭 PRODUCER CONFIGURATION (Financial-Grade)
+
+These settings apply to:
+
+* Transfer API Producer
+* Fraud Service Producer
+* Compliance Service Producer
+* Account Service Producer
+* Payment Service Producer
+* Ledger Service Producer
+
+---
+
+## 🔐 1️⃣ Reliability & Exactly-Once Settings (CRITICAL)
+
+```properties
+acks=all
+enable.idempotence=true
+retries=Integer.MAX_VALUE
+max.in.flight.requests.per.connection=5
+delivery.timeout.ms=120000
+request.timeout.ms=30000
+retry.backoff.ms=100
+```
+
+### Why:
+
+* `acks=all` → waits for ISR replication
+* `enable.idempotence=true` → prevents duplicates
+* Infinite retries → financial safety
+* In-flight ≤ 5 required for idempotence
+* Controlled backoff → avoids broker overload
+
+---
+
+## 🧾 2️⃣ Transactions (For EOS)
+
+For services that:
+
+* Consume → Process → Produce
+* Commit offsets atomically
+
+```properties
+transactional.id=account-service-tx-01
+```
+
+And in code:
+
+```java
+producer.initTransactions();
+producer.beginTransaction();
+// process
+producer.send(...)
+producer.sendOffsetsToTransaction(...)
+producer.commitTransaction();
+```
+
+Use for:
+
+* Account Service
+* Ledger Service
+* Saga Orchestrator
+
+---
+
+## 🚀 3️⃣ Throughput Optimization
+
+```properties
+batch.size=65536
+linger.ms=10
+compression.type=zstd
+buffer.memory=67108864
+```
+
+### Why:
+
+* Larger `batch.size` improves throughput
+* Small `linger.ms` balances latency vs batching
+* `zstd` → best compression ratio + speed
+* 64MB buffer prevents blocking
+
+---
+
+## ⚖️ 4️⃣ Ordering Strategy
+
+Partition key strategy:
+
+| Topic             | Key            |
+| ----------------- | -------------- |
+| transfer-commands | transaction_id |
+| account-events    | account_id     |
+| ledger-events     | account_id     |
+| payment-events    | transaction_id |
+
+This guarantees:
+
+* No double debit
+* Strict ordering per account
+* Saga state consistency
+
+---
+
+## 🔐 5️⃣ Security Settings
+
+```properties
+security.protocol=SASL_SSL
+sasl.mechanism=SCRAM-SHA-512
+ssl.endpoint.identification.algorithm=https
+```
+
+Production banks use:
+
+* mTLS
+* RBAC
+* ACL enforcement
+* Certificate rotation
+
+---
+
+# 🧲 CONSUMER CONFIGURATION (Financial-Grade)
+
+---
+
+## 🔁 1️⃣ Offset Management (CRITICAL)
+
+```properties
+enable.auto.commit=false
+auto.offset.reset=earliest
+isolation.level=read_committed
+```
+
+### Why:
+
+* Manual commit only after DB commit
+* `read_committed` required for transactional producer
+* Prevents reading aborted records
+
+---
+
+## ⚡ 2️⃣ Throughput & Poll Tuning
+
+```properties
+max.poll.records=500
+max.poll.interval.ms=300000
+fetch.min.bytes=1048576
+fetch.max.wait.ms=500
+max.partition.fetch.bytes=1048576
+```
+
+### Why:
+
+* Controls processing batch size
+* Avoids consumer rebalances
+* Efficient network usage
+
+---
+
+## 🔄 3️⃣ Consumer Concurrency Model
+
+Scale by:
+
+* Increasing partitions
+* Increasing consumer instances
+
+Example:
+
+* 50 partitions
+* 10 instances
+* Each handles ~5 partitions
+
+---
+
+## 🔥 4️⃣ Rebalance Strategy
+
+```properties
+partition.assignment.strategy=org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+```
+
+Benefits:
+
+* Incremental rebalancing
+* Minimal downtime
+* Reduces state churn
+
+---
+
+# 🧠 EXACTLY-ONCE END-TO-END FLOW
+
+To achieve EOS in financial systems:
+
+### Required:
+
+1. Idempotent producer
+2. Transactional producer
+3. `read_committed` consumers
+4. Atomic offset commits
+5. Deduplication table (optional extra safety)
+
+---
+
+# 🏎 PERFORMANCE TECHNIQUES (HIGH SCALE)
+
+---
+
+## 1️⃣ Topic-Level Optimization
+
+```bash
+replication.factor=3
+min.insync.replicas=2
+unclean.leader.election.enable=false
+```
+
+Never enable unclean leader election in banking.
+
+---
+
+## 2️⃣ Partition Sizing Strategy
+
+Formula:
+
+```
+Partitions = (Peak TPS × Processing Time) / Target Utilization
+```
+
+Example:
+
+* 50K TPS
+* 50ms processing
+* 70% target utilization
+
+→ ~70 partitions minimum
+
+---
+
+## 3️⃣ Broker-Level Optimizations
+
+Broker configs:
+
+```properties
+num.network.threads=8
+num.io.threads=16
+socket.send.buffer.bytes=102400
+socket.receive.buffer.bytes=102400
+log.segment.bytes=1073741824
+log.retention.hours=168
+```
+
+Use:
+
+* NVMe SSD
+* Dedicated disks for logs
+* Separate OS disk
+
+---
+
+## 4️⃣ Compression Strategy
+
+| Type | Use Case                 |
+| ---- | ------------------------ |
+| none | Low latency              |
+| lz4  | Balanced                 |
+| zstd | Best for high throughput |
+
+For banking → **zstd recommended**
+
+---
+
+## 5️⃣ Outbox Pattern (Critical in Banking)
+
+Instead of:
+
+* Direct producer in service logic
+
+Use:
+
+* Write event to DB
+* CDC (Debezium)
+* Kafka Connect publishes
+
+Benefits:
+
+* No dual-write problem
+* Strong DB atomicity
+* Audit compliance
+
+---
+
+## 6️⃣ Backpressure Control
+
+If downstream slow:
+
+* Pause partitions:
+
+```java
+consumer.pause(partitions);
+```
+
+* Resume later
+
+Prevents cascading failure.
+
+---
+
+## 7️⃣ Dead Letter Strategy
+
+For poison messages:
+
+* Retry topic (3 attempts)
+* DLQ topic
+* Alerting system
+
+Never drop financial messages silently.
+
+---
+
+## 8️⃣ Large Message Handling
+
+Avoid >1MB messages.
+
+If needed:
+
+```properties
+max.request.size=2097152
+replica.fetch.max.bytes=2097152
+```
+
+Better approach:
+
+* Store large payload in object store
+* Send reference ID in Kafka
+
+---
+
+## 9️⃣ Idempotency Pattern (Application-Level)
+
+Add:
+
+```sql
+CREATE TABLE processed_events (
+    event_id VARCHAR PRIMARY KEY,
+    processed_at TIMESTAMP
+);
+```
+
+Before processing:
+
+* Check if exists
+* If yes → skip
+
+---
+
+# 📊 Monitoring & Observability
+
+Track:
+
+* Consumer lag
+* ISR count
+* Under-replicated partitions
+* Request latency
+* Rebalance frequency
+* DLQ growth rate
+
+Critical Alerts:
+
+* Lag > threshold
+* ISR < min.insync.replicas
+* Transaction abort rate
+* Broker disk > 80%
+
+---
+
+# 🌍 Multi-Region Setup (Enterprise Banking)
+
+Use:
+
+* MirrorMaker 2
+* Cluster linking
+* Active-passive failover
+
+Never active-active for same account key without deterministic partitioning.
+
+---
+
+# 🧨 Common Performance Mistakes in Banking
+
+❌ enable.auto.commit=true
+❌ acks=1
+❌ unclean.leader.election.enable=true
+❌ Too few partitions
+❌ No idempotence
+❌ Large synchronous DB calls inside consumer loop
+❌ Ignoring consumer lag
+
+---
+
+# 🏁 Recommended Production Profile
+
+### For 50K TPS Banking Cluster
+
+* 6 brokers minimum
+* RF=3
+* 100 partitions for hot topics
+* zstd compression
+* 64GB RAM per broker
+* NVMe disks
+* 10Gbps network
+
+---
+
+# 🎯 Final Architecture Characteristics
+
+With the above configuration:
+
+✔ Strong ordering per account
+✔ Exactly-once semantics
+✔ No duplicate debits
+✔ Safe compensation handling
+✔ Regulatory audit compliance
+✔ Horizontal scalability
+✔ Backpressure resilience
+
+---
+
+If you'd like, I can next provide:
+
+* 🔹 Full production `server.properties` template
+* 🔹 Kubernetes Kafka tuning
+* 🔹 Capacity planning spreadsheet model
+* 🔹 1M TPS ultra-scale architecture
+* 🔹 Low-latency (<10ms) optimization profile
+* 🔹 Real outage case study breakdown
+
+Tell me how deep you want to go.
 
 
