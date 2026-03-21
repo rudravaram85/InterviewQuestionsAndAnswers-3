@@ -1,4 +1,130 @@
-If an interviewer asks **“Explain the internal working of Java HashMap”**, they’re usually checking how well you understand hashing, collisions, and performance. Here’s a strong, interview-ready way to answer 👇
+Java design patterns are standard solutions to common software design problems. They’re typically grouped into three main categories based on their purpose:
+
+---
+
+# 🧱 1. Creational Patterns (Object Creation)
+
+These deal with how objects are created, making the system more flexible and reusable.
+
+### Common types:
+
+* **Singleton**
+  Ensures only one instance of a class exists.
+  Example: Logger, Configuration manager
+
+* **Factory Method**
+  Creates objects without specifying the exact class.
+  Example: `ShapeFactory` creating Circle, Square, etc.
+
+* **Abstract Factory**
+  Produces families of related objects.
+  Example: GUI toolkit (Windows vs Mac UI components)
+
+* **Builder**
+  Builds complex objects step by step.
+  Example: Creating a `House` with many optional parts
+
+* **Prototype**
+  Creates objects by copying an existing instance.
+  Example: Cloning objects
+
+---
+
+# 🏗️ 2. Structural Patterns (Class/Object Structure)
+
+These focus on how classes and objects are composed.
+
+### Common types:
+
+* **Adapter**
+  Converts one interface into another.
+  Example: Using legacy code with a new system
+
+* **Bridge**
+  Separates abstraction from implementation.
+  Example: Shape + Drawing API
+
+* **Composite**
+  Treats individual objects and groups uniformly.
+  Example: File system (files & folders)
+
+* **Decorator**
+  Adds new behavior dynamically.
+  Example: Adding features to a stream
+
+* **Facade**
+  Provides a simplified interface to a complex system.
+  Example: One API wrapping multiple subsystems
+
+* **Flyweight**
+  Reduces memory usage by sharing objects.
+  Example: String pool in Java
+
+* **Proxy**
+  Controls access to another object.
+  Example: Lazy loading, access control
+
+---
+
+# ⚙️ 3. Behavioral Patterns (Object Interaction)
+
+These focus on communication between objects.
+
+### Common types:
+
+* **Observer**
+  One-to-many dependency; updates are pushed automatically.
+  Example: Event listeners, UI updates
+
+* **Strategy**
+  Defines a family of algorithms and makes them interchangeable.
+  Example: Sorting strategies
+
+* **Command**
+  Encapsulates a request as an object.
+  Example: Undo/Redo operations
+
+* **Chain of Responsibility**
+  Passes request along a chain of handlers.
+  Example: Logging frameworks
+
+* **State**
+  Changes behavior based on internal state.
+  Example: ATM machine states
+
+* **Template Method**
+  Defines algorithm structure, subclasses override steps.
+  Example: Abstract class workflows
+
+* **Mediator**
+  Centralizes communication between objects.
+  Example: Chat room system
+
+* **Iterator**
+  Traverses a collection without exposing details.
+  Example: Java `Iterator`
+
+* **Memento**
+  Saves/restores object state.
+  Example: Undo feature
+
+* **Visitor**
+  Adds new operations to objects without modifying them.
+
+---
+
+# 📌 Summary Table
+
+| Category   | Purpose                  |
+| ---------- | ------------------------ |
+| Creational | Object creation          |
+| Structural | Class/object composition |
+| Behavioral | Object interaction       |
+
+---
+
+
+
 
 ---
 
