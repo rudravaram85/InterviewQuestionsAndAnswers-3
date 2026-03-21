@@ -1,9 +1,138 @@
 
-When an interviewer asks about the **Bean Lifecycle in Spring Boot**, they’re usually checking clarity, structure, and practical understanding—not just theory.
-
-Here’s a **clean, interview-ready answer** you can give 👇
+In **Spring Boot**, a *circular dependency* happens when two or more beans depend on each other directly or indirectly, creating a loop that the container can’t resolve during initialization.
 
 ---
+
+## 🔁 Example of Circular Dependency
+
+```java
+@Component
+public class A {
+    @Autowired
+    private B b;
+}
+
+@Component
+public class B {
+    @Autowired
+    private A a;
+}
+```
+
+Here:
+
+* `A → B`
+* `B → A`
+  ➡️ This creates a cycle, and Spring may fail to start with an error like:
+
+> `BeanCurrentlyInCreationException`
+
+---
+
+## 🚨 Why It Happens
+
+Spring tries to create beans in order. With circular references:
+
+* Bean A needs Bean B
+* Bean B needs Bean A
+  ➡️ Neither can be fully constructed first.
+
+---
+
+## ✅ How to Fix It
+
+### 1. 🔄 Use Constructor Injection Carefully
+
+Constructor injection **makes circular dependencies fail fast** (which is good for design).
+
+```java
+public class A {
+    private final B b;
+
+    public A(B b) {
+        this.b = b;
+    }
+}
+```
+
+➡️ If you hit a circular dependency here, it's a sign your design needs refactoring.
+
+---
+
+### 2. 🪄 Use `@Lazy`
+
+Break the cycle by delaying initialization:
+
+```java
+@Component
+public class A {
+    @Autowired
+    @Lazy
+    private B b;
+}
+```
+
+➡️ Spring injects a proxy instead of the real bean immediately.
+
+---
+
+### 3. 🔧 Switch One Side to Setter Injection
+
+```java
+@Component
+public class A {
+    private B b;
+
+    @Autowired
+    public void setB(B b) {
+        this.b = b;
+    }
+}
+```
+
+➡️ Allows Spring to instantiate one bean first, then inject later.
+
+---
+
+### 4. 🧠 Refactor Design (Best Solution)
+
+Circular dependencies usually mean **tight coupling**.
+
+Try:
+
+* Introduce a third service:
+
+  ```text
+  A → C ← B
+  ```
+* Extract shared logic into a separate component
+* Use interfaces or events
+
+---
+
+### 5. 📢 Use Application Events
+
+Instead of direct dependency:
+
+* Publish events
+* Listen asynchronously
+
+```java
+applicationEventPublisher.publishEvent(new MyEvent(...));
+```
+
+---
+
+### 6. ⚙️ Enable Circular References (Not Recommended)
+
+In newer Spring Boot versions (2.6+), circular references are **disabled by default**.
+
+You *can* enable them:
+
+```properties
+spring.main.allow-circular-references=true
+```
+
 
 ## 🎤 **Perfect Interview Answer**
 
